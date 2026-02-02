@@ -1,0 +1,28 @@
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.admin-header {
+    background-color: #ff4081;
+    color: white;
+    padding: 15px;
+    width: 100%;
+    text-align: center;
+}
+
+.admin-content {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.admin-footer {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f1f1f1;
+    text-align: center;
+}

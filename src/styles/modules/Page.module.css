@@ -1,0 +1,24 @@
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+.page-header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.page-content {
+    flex: 1;
+    padding: 20px;
+}
+
+.page-footer {
+    background-color: #f1f1f1;
+    text-align: center;
+    padding: 10px;
+}
