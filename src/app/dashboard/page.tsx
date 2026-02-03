@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from '../../styles/modules/Dashboard.module.css';
 
 interface ResearchPaper {
@@ -17,6 +18,7 @@ const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPapers, setFilteredPapers] = useState<ResearchPaper[]>([]);
+  const router = useRouter();
 
   // Mock data
   useEffect(() => {
@@ -105,9 +107,14 @@ const DashboardPage = () => {
   }, [papers, activeTab, searchTerm]);
 
   const handleEvaluate = (paperId: string) => {
-    alert(`เริ่มประเมินเอกสารที่ ${paperId}`);
-    // TODO: Navigate to evaluate page
-  };
+    // Save selected paper id to sessionStorage and navigate to /evaluate
+    try {
+      sessionStorage.setItem('selectedPaperId', paperId);
+    } catch (e) {
+      // sessionStorage unavailable — ignore
+    }
+    router.push('/evaluate');
+  }; 
 
   const renderStars = (rating: number) => {
     return (
