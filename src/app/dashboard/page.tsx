@@ -113,7 +113,7 @@ const DashboardPage = () => {
     } catch (e) {
       // sessionStorage unavailable — ignore
     }
-    router.push('/evaluate');
+    router.push('/details');
   }; 
 
   const renderStars = (rating: number) => {
