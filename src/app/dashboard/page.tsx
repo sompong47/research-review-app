@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from '../../styles/modules/Dashboard.module.css';
+import styles from './Dashboard.module.css';
 
 interface ResearchPaper {
   id: string;
@@ -138,9 +138,6 @@ const DashboardPage = () => {
             </p>
           </div>
         </div>
-        <button className={styles.createButton}>
-          <span>+</span> สร้างประเมิน
-        </button>
       </header>
 
       {/* Filter Section */}
@@ -199,49 +196,92 @@ const DashboardPage = () => {
 
       {/* Main Content */}
       <div className={styles.mainContent}>
+        {/* Left stats rail */}
+        <aside className={styles.leftRail} aria-hidden>
+          <div className={styles.statBlock}>
+            <div className={styles.statTitle}>ทั้งหมด</div>
+            <div className={styles.statValue}>{papers.length}</div>
+          </div>
+          <div className={styles.statBlock}>
+            <div className={styles.statTitle}>รอประเมิน</div>
+            <div className={styles.statValue}>{papers.filter((p) => p.status === 'pending').length}</div>
+          </div>
+          <div className={styles.statBlock}>
+            <div className={styles.statTitle}>ประเมินแล้ว</div>
+            <div className={styles.statValue}>{papers.filter((p) => p.status === 'completed').length}</div>
+          </div>
+          <div style={{ height: 12 }} />
+          <div className={styles.statBlock}>
+            <div className={styles.statTitle}>ค้นหา</div>
+            <div style={{ marginTop: 8 }}>
+              <input
+                placeholder="พิมพ์เพื่อกรอง"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ padding: 8, borderRadius: 8, border: 'none', width: '100%' }}
+              />
+            </div>
+          </div>
+        </aside>
+
         {filteredPapers.length > 0 ? (
           <div className={styles.cardsGrid}>
-            {filteredPapers.map((paper) => (
-              <div key={paper.id} className={styles.card}>
-                <div className={styles.cardImage}>
-                  {paper.image ? (
-                    <img src={paper.image} alt={paper.title} />
-                  ) : (
-                    <div style={{ textAlign: 'center', width: '100%' }}>
-                      {paper.title.substring(0, 3)}...
+            {filteredPapers.map((paper) => {
+              const progress = paper.status === 'pending' ? Math.min(70, 30 + Number(paper.id) * 7) : 100;
+              return (
+                <div key={paper.id} className={styles.card}>
+                  <div className={styles.cardImage} aria-hidden>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%'}}>
+                      <div style={{fontSize:20,fontWeight:800}}>{paper.team}</div>
+                      <div style={{fontSize:12,marginTop:6,color:'rgba(230,238,248,0.75)'}}>คะแนน {paper.rating.toFixed(1)}</div>
                     </div>
-                  )}
+                  </div>
+
+                  <div className={styles.cardContent}>
+                    <h3 className={styles.cardTitle} title={paper.title}>{paper.title}</h3>
+
+                    <div className={styles.cardMeta}>
+                      <span className={styles.ratingStars}>{renderStars(paper.rating)}</span>
+                      <span className={styles.cardTeam}>{paper.team}</span>
+                    </div>
+
+                    <div className={styles.cardStatus}>
+                      <span
+                        className={`${styles.statusBadge} ${
+                          paper.status === 'pending' ? styles.pending : styles.completed
+                        }`}
+                      >
+                        <span className={styles.statusSquare} aria-hidden />
+                        {paper.status === 'pending' ? 'ยังไม่ได้ประเมิน' : 'ประเมินแล้ว'}
+                      </span>
+                    </div>
+
+                    <div style={{marginTop:10}}>
+                      <div style={{height:8,background:'rgba(255,255,255,0.04)',borderRadius:8,overflow:'hidden'}}>
+                        <div style={{width:`${progress}%`,height:'100%',background:'linear-gradient(90deg,#06b6d4,#7c3aed)'}} />
+                      </div>
+                      <div style={{fontSize:12,color:'rgba(230,238,248,0.7)',marginTop:6}}>{progress}% ความคืบหน้า</div>
+                    </div>
+
+                    <div className={styles.cardButtons}>
+                      <button
+                        className={styles.buttonEvaluate}
+                        onClick={() => handleEvaluate(paper.id)}
+                      >
+                        ประเมิน
+                      </button>
+                      <button
+                        className={styles.buttonEvaluate}
+                        onClick={() => router.push(`/details?id=${paper.id}`)}
+                        style={{background:'transparent',border:'1px solid rgba(255,255,255,0.06)',color:'rgba(230,238,248,0.9)'}}
+                      >
+                        ดูรายละเอียด
+                      </button>
+                    </div>
+                  </div>
                 </div>
-
-                <div className={styles.cardContent}>
-                  <h3 className={styles.cardTitle}>{paper.title}</h3>
-
-                  <div className={styles.cardMeta}>
-                    <span>{renderStars(paper.rating)}</span>
-                    <span className={styles.cardTeam}>{paper.team}</span>
-                  </div>
-
-                  <div className={styles.cardStatus}>
-                    <span
-                      className={`${styles.statusBadge} ${
-                        paper.status === 'pending' ? styles.pending : styles.completed
-                      }`}
-                    >
-                      {paper.status === 'pending' ? '● ยังไม่ได้ประเมิน' : '● ประเมินแล้ว'}
-                    </span>
-                  </div>
-
-                  <div className={styles.cardButtons}>
-                    <button
-                      className={styles.buttonEvaluate}
-                      onClick={() => handleEvaluate(paper.id)}
-                    >
-                      ประเมินงานวิจัย
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className={styles.emptyState}>
