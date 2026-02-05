@@ -25,7 +25,7 @@ const DashboardPage = () => {
     const mockData: ResearchPaper[] = [
       {
         id: '1',
-        title: 'GreenPoint - ระบบส่งเสริมกิจกรรมวิจัยเพื่อสาธารณสุข',
+        title: 'แมว - ระบบส่งเสริมกิจกรรมวิจัยเพื่อสาธารณสุข',
         team: 'TEAM 8',
         status: 'pending',
         rating: 4.5,
@@ -257,10 +257,10 @@ const DashboardPage = () => {
                     </div>
 
                     <div style={{marginTop:10}}>
-                      <div style={{height:8,background:'rgba(255,255,255,0.04)',borderRadius:8,overflow:'hidden'}}>
-                        <div style={{width:`${progress}%`,height:'100%',background:'linear-gradient(90deg,#06b6d4,#7c3aed)'}} />
+                      <div className={styles.progressTrack}>
+                        <div className={styles.progressBar} style={{ width: `${progress}%` }} />
                       </div>
-                      <div style={{fontSize:12,color:'rgba(230,238,248,0.7)',marginTop:6}}>{progress}% ความคืบหน้า</div>
+                      <div style={{fontSize:12,color:'rgba(15,23,42,0.6)',marginTop:6}}>{progress}% ความคืบหน้า</div>
                     </div>
 
                     <div className={styles.cardButtons}>
@@ -271,9 +271,8 @@ const DashboardPage = () => {
                         ประเมิน
                       </button>
                       <button
-                        className={styles.buttonEvaluate}
+                        className={styles.buttonOutline}
                         onClick={() => router.push(`/details?id=${paper.id}`)}
-                        style={{background:'transparent',border:'1px solid rgba(255,255,255,0.06)',color:'rgba(230,238,248,0.9)'}}
                       >
                         ดูรายละเอียด
                       </button>
