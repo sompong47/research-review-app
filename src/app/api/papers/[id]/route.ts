@@ -58,4 +58,39 @@ export async function DELETE(
   }
 }
 
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    await connectToDatabase();
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return new Response('Invalid id', { status: 400 });
+    }
+
+    const body = await request.json();
+    const { title, authors, abstract } = body;
+
+    const paper = await Paper.findByIdAndUpdate(
+      id,
+      { title, authors, abstract },
+      { new: true, runValidators: true }
+    );
+
+    if (!paper) {
+      return new Response('Not found', { status: 404 });
+    }
+
+    return new Response(JSON.stringify(paper), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err: any) {
+    return new Response(err.message || 'Server error', { status: 500 });
+  }
+}
+
 export const runtime = 'nodejs';

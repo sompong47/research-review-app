@@ -6,16 +6,16 @@ export const runtime = 'nodejs';
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   if (!id) {
     return new Response('Missing id', { status: 400 });
   }
 
   await connectToDatabase();
 
-  const db = mongoose.connection.db;
+  const db = mongoose.connection.db as any;
   const bucket = new mongoose.mongo.GridFSBucket(db, {
     bucketName: 'papers',
   });
@@ -27,7 +27,7 @@ export async function GET(
     // Node stream → Web stream (Node 18+)
     const webStream = Readable.toWeb(downloadStream as Readable);
 
-    return new Response(webStream, {
+    return new Response(webStream as any, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="${id}.pdf"`,

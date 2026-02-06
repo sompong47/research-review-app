@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import styles from './admin.module.css';
 import AuthGuard from '../../components/AuthGuard';
 import Header from '../../components/Header';
+import Sidebar from '../../components/admin/Sidebar';
 import StatCards from '../../components/admin/StatCards';
 import PapersTable from '../../components/admin/PapersTable';
 import AnalyticsCharts from '../../components/admin/AnalyticsCharts';
@@ -187,10 +189,101 @@ const AdminPage = () => {
   return (
     <AuthGuard requiredRole="admin">
       <Header />
-      <div className={styles.adminContainer}>
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <Sidebar />
+        <div style={{ flex: 1 }}>
+          <div className={styles.adminContainer}>
         <div className={styles.adminHeader}>
           <h1>🎯 Admin Control Center</h1>
           <p>บริหารจัดการระบบประเมินงานวิจัยอย่างครบครัน</p>
+        </div>
+
+        {/* Quick Access Feature Cards */}
+        <div className={styles.section}>
+          <h2>🚀 บริหารจัดการ</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
+            <Link href="/admin/papers" style={{ textDecoration: 'none' }}>
+              <div style={{
+                padding: '20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '8px',
+                color: '#fff',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(102, 126, 234, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>📚</div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>จัดการงานวิจัย</h3>
+                <p style={{ margin: '0', fontSize: '12px', opacity: 0.9 }}>ดู แก้ไข และลบ</p>
+              </div>
+            </Link>
+
+            <Link href="/admin/evaluations" style={{ textDecoration: 'none' }}>
+              <div style={{
+                padding: '20px',
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                borderRadius: '8px',
+                color: '#fff',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(245, 87, 108, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>📋</div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>การประเมิน</h3>
+                <p style={{ margin: '0', fontSize: '12px', opacity: 0.9 }}>ประวัติและคะแนน</p>
+              </div>
+            </Link>
+
+            <Link href="/admin/analytics" style={{ textDecoration: 'none' }}>
+              <div style={{
+                padding: '20px',
+                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                borderRadius: '8px',
+                color: '#fff',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(79, 172, 254, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>📈</div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>วิเคราะห์</h3>
+                <p style={{ margin: '0', fontSize: '12px', opacity: 0.9 }}>กราฟและสถิติ</p>
+              </div>
+            </Link>
+
+            <div style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #34ba1d 0%, #56ab2f 100%)',
+              borderRadius: '8px',
+              color: '#fff',
+              cursor: 'default',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            }}>
+              <div style={{ fontSize: '28px', marginBottom: '8px' }}>📤</div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>อัปโหลด</h3>
+              <p style={{ margin: '0', fontSize: '12px', opacity: 0.9 }}>Scroll ลงไป</p>
+            </div>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -564,6 +657,8 @@ const AdminPage = () => {
         <footer className={styles.adminFooter}>
           <p>Admin Control Center &copy; 2026 | Research Review System</p>
         </footer>
+        </div>
+      </div>
       </div>
     </AuthGuard>
   );

@@ -103,6 +103,35 @@
   padding: 24px;
 }
 
+/* ========== Error Alert ========== */
+.errorAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  color: #991b1b;
+}
+
+.errorAlert svg {
+  flex-shrink: 0;
+  color: #dc2626;
+}
+
+.errorAlert strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.errorAlert p {
+  margin: 0;
+  font-size: 14px;
+}
+
 /* ========== PDF Upload Area ========== */
 .uploadArea {
   display: flex;
@@ -722,13 +751,21 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
-.btnPrimary:hover {
+.btnPrimary:hover:not(:disabled) {
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
   transform: translateY(-1px);
 }
 
-.btnPrimary:active {
+.btnPrimary:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.btnPrimary:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
 }
 
 /* Toast */

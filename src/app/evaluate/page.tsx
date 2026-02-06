@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import styles from './evaluate.module.css';
 
 const EvaluatePage = () => {
@@ -19,19 +19,30 @@ const EvaluatePage = () => {
   const [userEmail, setUserEmail] = useState<string>('');
 
   const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
 
   const [toast, setToast] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      const id = sessionStorage.getItem('selectedPaperId');
+      // Support 3 ways to get paperId:
+      // 1. Dynamic route: /evaluate/[id]
+      const paramsId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+      // 2. Query param: /evaluate?id=xxx
+      const queryId = searchParams?.get('id');
+      // 3. sessionStorage (legacy)
+      const sessionId = sessionStorage.getItem('selectedPaperId');
+      
+      const id = paramsId || queryId || sessionId;
+      
       if (id) {
         setPaperId(id);
         sessionStorage.removeItem('selectedPaperId');
       }
     } catch {}
-  }, []);
+  }, [params, searchParams]);
 
   useEffect(() => {
     if (!toast) return;
@@ -77,8 +88,16 @@ const EvaluatePage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!paperId) {
+      setToast('ไม่พบรหัสงานวิจัย กรุณาเลือกงานวิจัยใหม่');
+      return;
+    }
+
     (async () => {
       try {
+        setStatus('draft');
+        
         // map local criteria to evaluation model
         const scores = {
           originality: Number(literature),
@@ -95,18 +114,26 @@ const EvaluatePage = () => {
           userEmail: userEmail || undefined,
         };
 
-        const res = await fetch('/api/evaluate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        console.log('Submitting evaluation:', payload);
+
+        const res = await fetch('/api/evaluate', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify(payload) 
+        });
+
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          throw new Error(err?.error || 'Failed to submit evaluation');
+          throw new Error(err?.error || `Failed to submit evaluation (${res.status})`);
         }
 
+        const result = await res.json();
         setStatus('saved');
         const now = new Date().toLocaleString();
         setSavedAt(now);
         setToast('บันทึกผลการประเมินเรียบร้อย ✅');
       } catch (err: any) {
-        console.error(err);
+        console.error('Submission error:', err);
         setToast('เกิดข้อผิดพลาดในการส่ง: ' + (err.message || String(err)));
       }
     })();
@@ -239,6 +266,20 @@ const EvaluatePage = () => {
                 {status === 'saved' ? 'บันทึกแล้ว' : 'ร่าง'}
               </div>
             </div>
+            
+            {!paperId && (
+              <div className={styles.errorAlert}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <div>
+                  <strong>ไม่พบรหัสงานวิจัย</strong>
+                  <p>กรุณาเลือกงานวิจัยจากแดชบอร์ดก่อน</p>
+                </div>
+              </div>
+            )}
             
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.criteriaInfo}>
@@ -382,7 +423,12 @@ const EvaluatePage = () => {
                   </svg>
                   ย้อนกลับ
                 </button>
-                <button type="submit" className={styles.btnPrimary}>
+                <button 
+                  type="submit" 
+                  className={styles.btnPrimary}
+                  disabled={!paperId}
+                  title={!paperId ? 'กรุณาเลือกงานวิจัยก่อน' : 'บันทึกผลการประเมิน'}
+                >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                   </svg>

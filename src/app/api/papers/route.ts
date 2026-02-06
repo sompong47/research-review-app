@@ -1,6 +1,7 @@
 import { connectToDatabase } from '../../../lib/db';
 import mongoose from 'mongoose';
 import Paper from '../../../lib/models/Paper';
+// @ts-ignore
 import * as jwt from 'jsonwebtoken';
 
 export async function GET() {
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
     const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName: 'papers' });
 
     const uploadStream = bucket.openUploadStream(file.name || `paper-${Date.now()}`, {
-      contentType: (file as any).type || 'application/pdf',
+      metadata: { contentType: (file as any).type || 'application/pdf' },
     });
 
     uploadStream.end(buffer);
