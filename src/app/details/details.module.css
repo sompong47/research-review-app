@@ -1,0 +1,630 @@
+/* ========== Main Container ========== */
+.container {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 24px;
+}
+
+.layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* ========== Loading & Error States ========== */
+.loadingContainer,
+.errorContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #1e40af;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== Sidebar ========== */
+.sidebar {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.sidebarCard {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.statusBadge {
+  background: #eff6ff;
+  color: #0c4a6e;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border: 1px solid #bae6fd;
+  display: inline-block;
+}
+
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 16px 0;
+}
+
+.groupTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  margin: 16px 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebarItem {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.sidebarItem strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ========== Main Content ========== */
+.mainContent {
+  width: 100%;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.backBtn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.contentCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 40px;
+  border: 1px solid #e5e7eb;
+}
+
+.titleSection {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.4;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+/* ========== Metadata Bar ========== */
+.metadataBar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  border: 1px solid #e5e7eb;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metaLabel {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metaValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.metaDivider {
+  width: 1px;
+  height: 35px;
+  background: #d1d5db;
+}
+
+/* ========== PDF Section ========== */
+.pdfContainer {
+  margin: 32px 0;
+}
+
+.pdfHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #eff6ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px 8px 0 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pdfHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.pdfActions {
+  display: flex;
+  gap: 12px;
+}
+
+.pdfBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #1e40af;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.pdfBtn:hover {
+  background: #1e3a8a;
+}
+
+.pdfSection {
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 0;
+  overflow: hidden;
+  display: none;
+}
+
+.pdfSection.show {
+  display: block;
+}
+
+.pdfIframe {
+  width: 100%;
+  height: 600px;
+  border: none;
+  display: block;
+  background: #f8f9fa;
+}
+
+/* ========== PDF Modal ========== */
+.pdfModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.pdfModal.open {
+  display: flex;
+}
+
+.pdfModalContent {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.pdfModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.pdfModalHeader h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  color: #111827;
+}
+
+.pdfModalBody {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8f9fa;
+}
+
+.pdfModalIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ========== Content Sections ========== */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 24px 0 16px 0;
+}
+
+.sectionTitle:first-child {
+  margin-top: 0;
+}
+
+.abstractSection,
+.objectivesSection,
+.keywordsSection {
+  background: #f8f9fa;
+  border-left: 4px solid #1e40af;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.abstractText {
+  line-height: 1.8;
+  color: #374151;
+  font-size: 14px;
+  margin: 0;
+  text-align: justify;
+}
+
+.objectivesList {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.objectivesList li {
+  position: relative;
+  padding-left: 12px;
+  margin-bottom: 10px;
+  color: #374151;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.objectivesList li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #1e40af;
+  font-weight: bold;
+}
+
+.keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keyword {
+  background: #eff6ff;
+  color: #0c4a6e;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
+}
+
+.noData {
+  color: #9ca3af;
+  font-style: italic;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ========== Info Grid ========== */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 32px 0;
+}
+
+.infoCard {
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.infoCard h4 {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.infoCard p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.infoCard small {
+  display: block;
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ========== Actions ========== */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px 0 0 0;
+  margin-top: 32px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancelBtn,
+.evaluateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.cancelBtn {
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.cancelBtn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.evaluateBtn {
+  background: #1e40af;
+  color: #ffffff;
+}
+
+.evaluateBtn:hover {
+  background: #1e3a8a;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+  }
+
+  .sidebarCard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .statusBadge,
+  .divider,
+  .groupTitle {
+    grid-column: 1 / -1;
+  }
+
+  .pdfIframe {
+    height: 500px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .metadataBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .metaDivider {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .layout {
+    gap: 16px;
+  }
+
+  .contentCard {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .sectionTitle {
+    font-size: 14px;
+  }
+
+  .pdfHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pdfActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .pdfBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pdfIframe {
+    height: 400px;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancelBtn,
+  .evaluateBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sidebarCard {
+    grid-template-columns: 1fr;
+  }
+
+  .abstractSection,
+  .objectivesSection,
+  .keywordsSection {
+    padding: 16px;
+  }
+
+  .keyword {
+    font-size: 12px;
+  }
+
+  .pdfModalContent {
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
