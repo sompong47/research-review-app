@@ -13,7 +13,13 @@ const EvaluatePage = () => {
   const [discussion, setDiscussion] = useState('5');
   
   const [comments, setComments] = useState('');
+  // status was previously used to prevent multiple submissions; we no longer
+  // block repeats, instead a simple "saving" flag is used to disable the form
+  // during an in-flight request. status may still reflect the last save for UI
+  // purposes but doesn't prevent resubmission.
   const [status, setStatus] = useState<'draft' | 'saved'>('draft');
+  const [saving, setSaving] = useState(false);
+  const [showThanks, setShowThanks] = useState(false); // show thank-you screen after saving
   const [paperId, setPaperId] = useState<string | null>(null);
   const [paperDetails, setPaperDetails] = useState<any | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
@@ -86,6 +92,38 @@ const EvaluatePage = () => {
 
   const qualityLevel = getQualityLevel(Number(average));
 
+  // previously we would call the GET API to check if the email had already
+  // evaluated the paper and set `status` to 'saved' to block further edits.
+  // that behaviour is no longer desired – everyone should be able to submit any
+  // number of evaluations. we still keep the effect in case we want to warn the
+  // user, but we won't change the form state.
+  useEffect(() => {
+    if (!paperId) return;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/evaluate?paperId=${paperId}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.hasEvaluated) {
+          // disable editing, show status saved and inform user
+          setStatus('saved');
+          setToast('งานวิจัยชิ้นนี้ได้รับการประเมินเรียบร้อยแล้ว');
+        }
+      } catch (e) {
+        // ignore network issues
+      }
+    })();
+  }, [paperId]);
+
+  // when thank you screen is shown, scroll to top so message is visible
+  useEffect(() => {
+    if (showThanks) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showThanks]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -96,6 +134,7 @@ const EvaluatePage = () => {
 
     (async () => {
       try {
+        setSaving(true);
         setStatus('draft');
         
         // map local criteria to evaluation model
@@ -132,9 +171,13 @@ const EvaluatePage = () => {
         const now = new Date().toLocaleString();
         setSavedAt(now);
         setToast('บันทึกผลการประเมินเรียบร้อย ✅');
+        // show thank you view
+        setShowThanks(true);
       } catch (err: any) {
         console.error('Submission error:', err);
         setToast('เกิดข้อผิดพลาดในการส่ง: ' + (err.message || String(err)));
+      } finally {
+        setSaving(false);
       }
     })();
   }; 
@@ -198,7 +241,19 @@ const EvaluatePage = () => {
   ];
 
   return (
-    <div className={styles.container}>
+    showThanks ? (
+      <div className={`${styles.container} ${styles.thanksContainer}`}>
+        <div className={styles.thanksBox}>
+          <div style={{ fontSize: '48px', color: '#10b981', marginBottom: '16px' }}>✓</div>
+          <h2>ขอบคุณสำหรับการประเมิน</h2>
+          <p>เราขอบคุณที่คุณสละเวลาประเมินงานวิจัยชิ้นนี้</p>
+          <button onClick={() => router.push('/dashboard')} className={styles.thanksButton}>
+            ไปหน้าหลัก
+          </button>
+        </div>
+      </div>
+    ) : (
+      <div className={styles.container}>
       <div className={styles.wrapper}>
         {toast && <div className={styles.toast}>{toast}</div>}
         {/* Header Section */}
@@ -281,8 +336,19 @@ const EvaluatePage = () => {
               </div>
             )}
             
+            {paperId && (
+              <div className={styles.infoAlert}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                  <strong>หมายเหตุ:</strong> งานวิจัยแต่ละชิ้นสามารถประเมินได้เพียงครั้งเดียว โดยใครก็ตาม ไม่จำกัดบัญชี
+                </div>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className={styles.form}>
-              <div className={styles.criteriaInfo}>
+              <fieldset disabled={saving || status === 'saved'} style={{ border: 'none', padding: 0, margin:0 }}>
+                <div className={styles.criteriaInfo}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="16" x2="12" y2="12"/>
@@ -411,12 +477,14 @@ const EvaluatePage = () => {
                 </div>
               </div>
 
+              </fieldset>
               {/* Action Buttons */}
               <div className={styles.actions}>
                 <button
                   type="button"
                   className={styles.btnSecondary}
                   onClick={() => router.back()}
+                  disabled={saving}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -426,8 +494,16 @@ const EvaluatePage = () => {
                 <button 
                   type="submit" 
                   className={styles.btnPrimary}
-                  disabled={!paperId}
-                  title={!paperId ? 'กรุณาเลือกงานวิจัยก่อน' : 'บันทึกผลการประเมิน'}
+                  disabled={!paperId || saving || status === 'saved'}
+                  title={
+                    status === 'saved'
+                      ? 'งานวิจัยนี้ถูกประเมินแล้ว'
+                      : saving
+                      ? 'กำลังบันทึก…'
+                      : !paperId
+                      ? 'กรุณาเลือกงานวิจัยก่อน'
+                      : 'บันทึกผลการประเมิน'
+                  }
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
@@ -511,7 +587,7 @@ const EvaluatePage = () => {
         </footer>
       </div>
     </div>
-  );
+  ));
 };
 
 export default EvaluatePage;

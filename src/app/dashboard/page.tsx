@@ -22,6 +22,7 @@ const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'completed'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPapers, setFilteredPapers] = useState<ResearchPaper[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
   const router = useRouter();
 
   /* ---------------- helpers ---------------- */
@@ -81,6 +82,7 @@ const DashboardPage = () => {
         }
 
         setPapers(basePapers);
+        setPendingCount(basePapers.filter((p) => p.status === 'pending').length);
       } catch (err) {
         console.error('Failed to load dashboard data', err);
       }
@@ -114,7 +116,7 @@ const DashboardPage = () => {
     try {
       sessionStorage.setItem('selectedPaperId', paperId);
     } catch {}
-    router.push('/details');
+    router.push('/evaluate');
   };
 
   /* ---------------- UI ---------------- */
@@ -151,13 +153,20 @@ const DashboardPage = () => {
                 key={t}
                 className={`${styles.tabButton} ${
                   activeTab === t ? styles.active : ''
-                }`}
+                } ${t === 'pending' && pendingCount > 0 ? styles.alertTab : ''}`}
                 onClick={() => setActiveTab(t)}
               >
                 {t === 'all'
                   ? 'ทั้งหมด'
                   : t === 'pending'
-                  ? 'ยังไม่ได้ประเมิน'
+                  ? (
+                      <>
+                        ยังไม่ได้ประเมิน
+                        {pendingCount > 0 && (
+                          <span style={{color:'#dc2626', marginLeft:4}}>({pendingCount})</span>
+                        )}
+                      </>
+                    )
                   : 'ประเมินแล้ว'}
               </button>
             ))}
@@ -178,7 +187,7 @@ const DashboardPage = () => {
                     : 100;
 
                 return (
-                  <div key={paper._id} className={styles.card}>
+                  <div key={paper._id} className={`${styles.card} ${paper.status==='pending' ? styles.pending : ''}`}>
                     <div className={styles.cardImage}>
                       <div
                         style={{

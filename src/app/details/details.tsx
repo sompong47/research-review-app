@@ -11,6 +11,7 @@ interface Research {
   authors: string[];
   status: 'pending' | 'completed';
   fileId?: string;
+  fileUrl?: string;
   abstract: string;
   objectives: string[];
   keywords: string[];
@@ -71,6 +72,7 @@ export default function ResearchDetailsPage() {
           authors: data.authors || [],
           status: data.status || 'pending',
           fileId: data.fileId,
+          fileUrl: data.fileUrl, // added url property
           abstract: data.abstract || 'ไม่มีบทคัดย่อ',
           objectives: data.objectives || ['ไม่ได้ระบุวัตถุประสงค์'],
           keywords: data.keywords || [],
@@ -128,7 +130,12 @@ export default function ResearchDetailsPage() {
     );
   }
 
-  const pdfUrl = research.fileId ? `/api/files/${research.fileId}` : '';
+  // use fileUrl directly if available, or fallback to fileId route
+  const pdfUrl = research.fileUrl
+    ? research.fileUrl
+    : research.fileId
+    ? `/api/files/${research.fileId}`
+    : '';
 
   return (
     <>
@@ -216,6 +223,13 @@ export default function ResearchDetailsPage() {
                         title="เปิดดูเอกสาร"
                       >
                         👁️ ดูเอกสาร
+                      </button>
+                      <button
+                        className={styles.pdfBtn}
+                        onClick={() => window.open(pdfUrl, '_blank')}
+                        title="เปิดเต็มจอ (แท็บใหม่)"
+                      >
+                        🔍 เต็มจอ
                       </button>
                       <a
                         href={pdfUrl}
@@ -312,7 +326,12 @@ export default function ResearchDetailsPage() {
           </div>
           <div className={styles.pdfModalBody}>
             {pdfUrl ? (
-              <iframe src={pdfUrl} className={styles.pdfModalIframe} title="PDF Viewer" />
+              <iframe
+                src={pdfUrl}
+                className={styles.pdfModalIframe}
+                title="PDF Viewer"
+                allowFullScreen
+              />
             ) : (
               <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
                 ไม่มีไฟล์เอกสาร

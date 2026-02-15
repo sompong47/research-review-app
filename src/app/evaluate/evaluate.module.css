@@ -6,6 +6,55 @@
   background: #ffffff;
 }
 
+/* a special container used only for the thank‑you screen so the box can be centred both
+   horizontally and vertically without affecting the rest of the layout. */
+.thanksContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* thank you screen */
+.thanksBox {
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  padding: 40px 30px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+.thanksBox h2 {
+  margin-bottom: 16px;
+  font-size: 28px;
+  color: #111827;
+  font-weight: 700;
+}
+.thanksBox p {
+  margin-bottom: 32px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+.thanksButton {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+.thanksButton:hover {
+  background: #2563eb;
+}
+.thanksButton:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
 .wrapper {
   max-width: 950px;
   margin: 0 auto;
@@ -137,6 +186,26 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* informational notice displayed above the evaluation form */
+.infoAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  color: #0369a1;
+}
+.infoAlert svg {
+  flex-shrink: 0;
+  color: #0284c7;
+}
+.infoAlert strong {
+  font-weight: 600;
 }
 
 .uploadLabel {

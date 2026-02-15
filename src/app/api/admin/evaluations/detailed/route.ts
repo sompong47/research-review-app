@@ -15,7 +15,12 @@ export async function GET(request: Request) {
 
     let query: any = {};
     if (paperId) {
-      query.paper = new mongoose.Types.ObjectId(paperId);
+      const ids = paperId.split(',').map((s) => s.trim()).filter(Boolean);
+      if (ids.length === 1) {
+        query.paper = new mongoose.Types.ObjectId(ids[0]);
+      } else if (ids.length > 1) {
+        query.paper = { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) };
+      }
     }
 
     let evaluations = await Evaluation.find(query)

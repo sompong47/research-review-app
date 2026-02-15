@@ -18,9 +18,13 @@ export async function GET(request: Request) {
       query.paper = new mongoose.Types.ObjectId(paperId);
     }
 
+    // build the sort object dynamically; mongoose typings are picky so use any
+    const sortObj: any = {};
+    sortObj[sortBy] = parseInt(sortOrder);
+
     const evaluations = await Evaluation.find(query)
       .populate('paper', 'title authors')
-      .sort({ [sortBy]: parseInt(sortOrder) })
+      .sort(sortObj)
       .lean();
 
     // Enrich with user count who evaluated

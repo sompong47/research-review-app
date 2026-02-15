@@ -34,7 +34,7 @@ const EvaluationsPage = () => {
   const [evaluations, setEvaluations] = useState<DetailedEvaluation[]>([]);
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPaper, setSelectedPaper] = useState<string>('');
+  const [selectedPapers, setSelectedPapers] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<string>('-1');
   const [minScore, setMinScore] = useState<number>(0);
@@ -51,11 +51,11 @@ const EvaluationsPage = () => {
     }
   };
 
-  const fetchEvaluations = async (paperId?: string, sort?: string, order?: string, minSc?: number) => {
+  const fetchEvaluations = async (paperIds?: string[], sort?: string, order?: string, minSc?: number) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (paperId) params.append('paperId', paperId);
+      if (paperIds && paperIds.length > 0) params.append('paperId', paperIds.join(','));
       if (sort) params.append('sortBy', sort);
       if (order) params.append('sortOrder', order);
       if (minSc && minSc > 0) params.append('minScore', minSc.toString());
@@ -78,7 +78,7 @@ const EvaluationsPage = () => {
   }, []);
 
   const handleFilterChange = async () => {
-    await fetchEvaluations(selectedPaper || undefined, sortBy, sortOrder, minScore);
+    await fetchEvaluations(selectedPapers.length ? selectedPapers : undefined, sortBy, sortOrder, minScore);
   };
 
   const getScoreBgColor = (score: number) => {
@@ -109,19 +109,23 @@ const EvaluationsPage = () => {
             <h3>🔍 ตัวกรองและการจัดเรียง</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '20px' }}>
               <div>
-                <label>งานวิจัย:</label>
+                <label>งานวิจัย (กด Ctrl/Command เพื่อเลือกหลายรายการ):</label>
                 <select
-                  value={selectedPaper}
-                  onChange={(e) => setSelectedPaper(e.target.value)}
+                  multiple
+                  value={selectedPapers}
+                  onChange={(e) => {
+                    const opts = Array.from(e.target.selectedOptions).map((o) => o.value);
+                    setSelectedPapers(opts);
+                  }}
                   style={{
                     width: '100%',
                     padding: '8px',
                     marginTop: '8px',
                     borderRadius: '6px',
                     border: '1px solid #ddd',
+                    height: '120px',
                   }}
                 >
-                  <option value="">ทั้งหมด</option>
                   {papers.map((p) => (
                     <option key={p._id} value={p._id}>
                       {p.title}
@@ -183,9 +187,10 @@ const EvaluationsPage = () => {
                 </div>
               </div>
             </div>
-            <button
-              onClick={handleFilterChange}
-              style={{
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={handleFilterChange}
+                style={{
                 padding: '10px 20px',
                 background: '#667eea',
                 color: '#fff',
@@ -194,9 +199,67 @@ const EvaluationsPage = () => {
                 cursor: 'pointer',
                 fontWeight: 'bold',
               }}
-            >
-              🔍 ใช้ตัวกรอง
-            </button>
+              >
+                🔍 ใช้ตัวกรอง
+              </button>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  if (selectedPapers.length) params.append('paperId', selectedPapers.join(','));
+                  params.append('format', 'excel');
+                  window.open(`/api/admin/export?${params.toString()}`, '_blank');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  background: '#f59e0b',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                📊 ดาวน์โหลด Excel
+              </button>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  if (selectedPapers.length) params.append('paperId', selectedPapers.join(','));
+                  params.append('format', 'csv');
+                  window.open(`/api/admin/export?${params.toString()}`, '_blank');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  background: '#16a34a',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                ⬇️ ดาวน์โหลด CSV
+              </button>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  if (selectedPapers.length) params.append('paperId', selectedPapers.join(','));
+                  params.append('format', 'json');
+                  window.open(`/api/admin/export?${params.toString()}`, '_blank');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  background: '#0ea5e9',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                ⬇️ ดาวน์โหลด JSON
+              </button>
+            </div>
           </div>
 
           {/* Evaluations List */}
@@ -206,6 +269,15 @@ const EvaluationsPage = () => {
             <div className={styles.emptyState}>ยังไม่มีการประเมิน</div>
           ) : (
             <div>
+              <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
+                {selectedPapers.length > 0 ? (
+                  <>
+                    กำลังแสดงการประเมินสำหรับ: <strong>{selectedPapers.length} งานวิจัย</strong>
+                  </>
+                ) : (
+                  <>แสดงการประเมินทั้งหมด</>
+                )}
+              </div>
               <div style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
                 พบการประเมิน: <strong>{evaluations.length}</strong> รายการ
               </div>
