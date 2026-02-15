@@ -1,5 +1,6 @@
-import { connectToDatabase } from '../../../lib/db';
-import User from '../../../lib/models/User';
+// ใช้ @/ เพื่ออ้างอิงจาก root folder (src) โดยตรง ไม่ต้องนับจุดให้งง
+import { connectToDatabase } from '@/lib/db';
+import User from '@/lib/models/User';
 
 export async function POST(request: Request) {
   try {
@@ -14,6 +15,8 @@ export async function POST(request: Request) {
     }
 
     await connectToDatabase();
+    
+    // ค้นหาและอัปเดต Role
     const user = await User.findOneAndUpdate(
       { email },
       { role },

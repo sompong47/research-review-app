@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react'; // รวม import
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import styles from './evaluate.module.css';
 
-const EvaluatePage = () => {
+// 1. เปลี่ยนชื่อ Component หลักเดิม เป็น EvaluateContent (เนื้อหาข้างใน)
+const EvaluateContent = () => {
   // เกณฑ์การประเมิน 5 หมวดหลัก
   const [reliability, setReliability] = useState('5');
   const [structure, setStructure] = useState('5');
@@ -13,20 +14,16 @@ const EvaluatePage = () => {
   const [discussion, setDiscussion] = useState('5');
   
   const [comments, setComments] = useState('');
-  // status was previously used to prevent multiple submissions; we no longer
-  // block repeats, instead a simple "saving" flag is used to disable the form
-  // during an in-flight request. status may still reflect the last save for UI
-  // purposes but doesn't prevent resubmission.
   const [status, setStatus] = useState<'draft' | 'saved'>('draft');
   const [saving, setSaving] = useState(false);
-  const [showThanks, setShowThanks] = useState(false); // show thank-you screen after saving
+  const [showThanks, setShowThanks] = useState(false);
   const [paperId, setPaperId] = useState<string | null>(null);
   const [paperDetails, setPaperDetails] = useState<any | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
 
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // ตัวต้นเหตุที่ต้องใช้ Suspense
 
   const [toast, setToast] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -34,11 +31,8 @@ const EvaluatePage = () => {
   useEffect(() => {
     try {
       // Support 3 ways to get paperId:
-      // 1. Dynamic route: /evaluate/[id]
       const paramsId = Array.isArray(params?.id) ? params.id[0] : params?.id;
-      // 2. Query param: /evaluate?id=xxx
       const queryId = searchParams?.get('id');
-      // 3. sessionStorage (legacy)
       const sessionId = sessionStorage.getItem('selectedPaperId');
       
       const id = paramsId || queryId || sessionId;
@@ -81,7 +75,6 @@ const EvaluatePage = () => {
   const maxScore = 25;
   const average = (totalScore / 5).toFixed(2);
   
-  // คำนวณระดับคุณภาพตามเกณฑ์
   const getQualityLevel = (avg: number) => {
     if (avg >= 4.50) return { label: 'ดีมาก', color: '#16a34a' };
     if (avg >= 3.50) return { label: 'ดี', color: '#3b82f6' };
@@ -92,11 +85,6 @@ const EvaluatePage = () => {
 
   const qualityLevel = getQualityLevel(Number(average));
 
-  // previously we would call the GET API to check if the email had already
-  // evaluated the paper and set `status` to 'saved' to block further edits.
-  // that behaviour is no longer desired – everyone should be able to submit any
-  // number of evaluations. we still keep the effect in case we want to warn the
-  // user, but we won't change the form state.
   useEffect(() => {
     if (!paperId) return;
     (async () => {
@@ -107,7 +95,6 @@ const EvaluatePage = () => {
         if (!res.ok) return;
         const data = await res.json();
         if (data.hasEvaluated) {
-          // disable editing, show status saved and inform user
           setStatus('saved');
           setToast('งานวิจัยชิ้นนี้ได้รับการประเมินเรียบร้อยแล้ว');
         }
@@ -117,7 +104,6 @@ const EvaluatePage = () => {
     })();
   }, [paperId]);
 
-  // when thank you screen is shown, scroll to top so message is visible
   useEffect(() => {
     if (showThanks) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,7 +123,6 @@ const EvaluatePage = () => {
         setSaving(true);
         setStatus('draft');
         
-        // map local criteria to evaluation model
         const scores = {
           originality: Number(literature),
           methodology: Number(methodology),
@@ -166,12 +151,11 @@ const EvaluatePage = () => {
           throw new Error(err?.error || `Failed to submit evaluation (${res.status})`);
         }
 
-        const result = await res.json();
+        await res.json();
         setStatus('saved');
         const now = new Date().toLocaleString();
         setSavedAt(now);
         setToast('บันทึกผลการประเมินเรียบร้อย ✅');
-        // show thank you view
         setShowThanks(true);
       } catch (err: any) {
         console.error('Submission error:', err);
@@ -588,6 +572,16 @@ const EvaluatePage = () => {
       </div>
     </div>
   ));
+};
+
+// 2. สร้าง Component ใหม่ (Wrapper) ที่ Export ออกไป
+// และทำการ Wrap เนื้อหาข้างในด้วย <Suspense>
+const EvaluatePage = () => {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading evaluation form...</div>}>
+      <EvaluateContent />
+    </Suspense>
+  );
 };
 
 export default EvaluatePage;
