@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import styles from './evaluate.module.css';
 
 const EvaluatePage = () => {
@@ -13,29 +13,42 @@ const EvaluatePage = () => {
   const [discussion, setDiscussion] = useState('5');
   
   const [comments, setComments] = useState('');
+  // status was previously used to prevent multiple submissions; we no longer
+  // block repeats, instead a simple "saving" flag is used to disable the form
+  // during an in-flight request. status may still reflect the last save for UI
+  // purposes but doesn't prevent resubmission.
   const [status, setStatus] = useState<'draft' | 'saved'>('draft');
+  const [saving, setSaving] = useState(false);
+  const [showThanks, setShowThanks] = useState(false); // show thank-you screen after saving
   const [paperId, setPaperId] = useState<string | null>(null);
+  const [paperDetails, setPaperDetails] = useState<any | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
 
   const router = useRouter();
-
-  const mockPapers: Record<string, { title: string; team: string; field?: string }> = {
-    '1': { title: 'GreenPoint - ระบบส่งเสริมกิจกรรมวิจัยเพื่อสาธารณสุข', team: 'TEAM 8', field: 'Public Health' },
-    '2': { title: 'การพัฒนาเอกสารวิจัยด้านการศึกษา', team: 'TEAM 5', field: 'Education' },
-    '3': { title: 'การศึกษาผลกระทบของเทคโนโลยีต่อสังคม', team: 'TEAM 3', field: 'Sociology' },
-  };
+  const params = useParams();
+  const searchParams = useSearchParams();
 
   const [toast, setToast] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      const id = sessionStorage.getItem('selectedPaperId');
+      // Support 3 ways to get paperId:
+      // 1. Dynamic route: /evaluate/[id]
+      const paramsId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+      // 2. Query param: /evaluate?id=xxx
+      const queryId = searchParams?.get('id');
+      // 3. sessionStorage (legacy)
+      const sessionId = sessionStorage.getItem('selectedPaperId');
+      
+      const id = paramsId || queryId || sessionId;
+      
       if (id) {
         setPaperId(id);
         sessionStorage.removeItem('selectedPaperId');
       }
     } catch {}
-  }, []);
+  }, [params, searchParams]);
 
   useEffect(() => {
     if (!toast) return;
@@ -43,7 +56,21 @@ const EvaluatePage = () => {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const paperDetails = paperId ? mockPapers[paperId] ?? null : null; 
+  useEffect(() => {
+    const load = async () => {
+      if (!paperId) return;
+      try {
+        const res = await fetch('/api/papers');
+        if (!res.ok) return;
+        const list = await res.json();
+        const found = (list || []).find((p: any) => p._id === paperId || p.id === paperId);
+        if (found) setPaperDetails(found);
+      } catch (err) {
+        console.error('Failed to load paper details', err);
+      }
+    };
+    load();
+  }, [paperId]);
 
   const totalScore = 
     Number(reliability) + 
@@ -65,12 +92,94 @@ const EvaluatePage = () => {
 
   const qualityLevel = getQualityLevel(Number(average));
 
+  // previously we would call the GET API to check if the email had already
+  // evaluated the paper and set `status` to 'saved' to block further edits.
+  // that behaviour is no longer desired – everyone should be able to submit any
+  // number of evaluations. we still keep the effect in case we want to warn the
+  // user, but we won't change the form state.
+  useEffect(() => {
+    if (!paperId) return;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/evaluate?paperId=${paperId}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.hasEvaluated) {
+          // disable editing, show status saved and inform user
+          setStatus('saved');
+          setToast('งานวิจัยชิ้นนี้ได้รับการประเมินเรียบร้อยแล้ว');
+        }
+      } catch (e) {
+        // ignore network issues
+      }
+    })();
+  }, [paperId]);
+
+  // when thank you screen is shown, scroll to top so message is visible
+  useEffect(() => {
+    if (showThanks) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showThanks]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('saved');
-    const now = new Date().toLocaleString();
-    setSavedAt(now);
-    setToast('บันทึกผลการประเมินเรียบร้อย ✅');
+    
+    if (!paperId) {
+      setToast('ไม่พบรหัสงานวิจัย กรุณาเลือกงานวิจัยใหม่');
+      return;
+    }
+
+    (async () => {
+      try {
+        setSaving(true);
+        setStatus('draft');
+        
+        // map local criteria to evaluation model
+        const scores = {
+          originality: Number(literature),
+          methodology: Number(methodology),
+          clarity: Number(structure),
+          significance: Number(discussion),
+          overall: Number(((Number(reliability) + Number(structure) + Number(literature) + Number(methodology) + Number(discussion)) / 5).toFixed(2)),
+        };
+
+        const payload = {
+          paperId: paperId,
+          scores,
+          comments,
+          userEmail: userEmail || undefined,
+        };
+
+        console.log('Submitting evaluation:', payload);
+
+        const res = await fetch('/api/evaluate', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify(payload) 
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          throw new Error(err?.error || `Failed to submit evaluation (${res.status})`);
+        }
+
+        const result = await res.json();
+        setStatus('saved');
+        const now = new Date().toLocaleString();
+        setSavedAt(now);
+        setToast('บันทึกผลการประเมินเรียบร้อย ✅');
+        // show thank you view
+        setShowThanks(true);
+      } catch (err: any) {
+        console.error('Submission error:', err);
+        setToast('เกิดข้อผิดพลาดในการส่ง: ' + (err.message || String(err)));
+      } finally {
+        setSaving(false);
+      }
+    })();
   }; 
 
   const evaluationCriteria = [
@@ -132,7 +241,19 @@ const EvaluatePage = () => {
   ];
 
   return (
-    <div className={styles.container}>
+    showThanks ? (
+      <div className={`${styles.container} ${styles.thanksContainer}`}>
+        <div className={styles.thanksBox}>
+          <div style={{ fontSize: '48px', color: '#10b981', marginBottom: '16px' }}>✓</div>
+          <h2>ขอบคุณสำหรับการประเมิน</h2>
+          <p>เราขอบคุณที่คุณสละเวลาประเมินงานวิจัยชิ้นนี้</p>
+          <button onClick={() => router.push('/dashboard')} className={styles.thanksButton}>
+            ไปหน้าหลัก
+          </button>
+        </div>
+      </div>
+    ) : (
+      <div className={styles.container}>
       <div className={styles.wrapper}>
         {toast && <div className={styles.toast}>{toast}</div>}
         {/* Header Section */}
@@ -174,23 +295,19 @@ const EvaluatePage = () => {
             <div className={styles.cardBody}>
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>ชื่อเรื่อง</span>
-                <span className={styles.infoValue}>ระบบแนะนำอัจฉริยะด้วย AI</span>
+                <span className={styles.infoValue}>{paperDetails?.title || 'ไม่ระบุ'}</span>
               </div>
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>ผู้วิจัย</span>
-                <span className={styles.infoValue}>นายสมชาย ใจดี</span>
+                <span className={styles.infoValue}>{(paperDetails?.authors || []).join(', ') || 'ไม่ระบุ'}</span>
               </div>
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>สาขา</span>
-                <span className={styles.infoValue}>วิทยาการคอมพิวเตอร์</span>
+                <span className={styles.infoLabel}>บทคัดย่อ</span>
+                <span className={styles.infoValue} style={{ whiteSpace: 'pre-wrap' }}>{paperDetails?.abstract ? (paperDetails.abstract.length > 240 ? paperDetails.abstract.slice(0, 240) + '...' : paperDetails.abstract) : 'ไม่มีบทคัดย่อ'}</span>
               </div>
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>ระดับ</span>
-                <span className={styles.infoValue}>ปริญญาโท</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>ปีการศึกษา</span>
-                <span className={styles.infoValue}>2568</span>
+                <span className={styles.infoLabel}>ไฟล์</span>
+                <span className={styles.infoValue}>{paperDetails?.fileUrl ? <a href={paperDetails.fileUrl} target="_blank" rel="noreferrer">ดาวน์โหลด/ดู</a> : 'ไม่พบไฟล์'}</span>
               </div>
             </div>
           </div>
@@ -205,8 +322,33 @@ const EvaluatePage = () => {
               </div>
             </div>
             
+            {!paperId && (
+              <div className={styles.errorAlert}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <div>
+                  <strong>ไม่พบรหัสงานวิจัย</strong>
+                  <p>กรุณาเลือกงานวิจัยจากแดชบอร์ดก่อน</p>
+                </div>
+              </div>
+            )}
+            
+            {paperId && (
+              <div className={styles.infoAlert}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                  <strong>หมายเหตุ:</strong> งานวิจัยแต่ละชิ้นสามารถประเมินได้เพียงครั้งเดียว โดยใครก็ตาม ไม่จำกัดบัญชี
+                </div>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className={styles.form}>
-              <div className={styles.criteriaInfo}>
+              <fieldset disabled={saving || status === 'saved'} style={{ border: 'none', padding: 0, margin:0 }}>
+                <div className={styles.criteriaInfo}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="16" x2="12" y2="12"/>
@@ -272,6 +414,13 @@ const EvaluatePage = () => {
                     <span>ข้อเสนอแนะเชิงคุณภาพ</span>
                   </div>
                 </label>
+                <input
+                  type="email"
+                  placeholder="อีเมล (ไม่บังคับ — ใช้เพื่อติดตามการประเมินเท่านั้น)"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  style={{ padding: 8, borderRadius: 6, border: '1px solid #e5e7eb', marginBottom: 8 }}
+                />
                 <textarea
                   rows={6}
                   value={comments}
@@ -328,19 +477,34 @@ const EvaluatePage = () => {
                 </div>
               </div>
 
+              </fieldset>
               {/* Action Buttons */}
               <div className={styles.actions}>
                 <button
                   type="button"
                   className={styles.btnSecondary}
                   onClick={() => router.back()}
+                  disabled={saving}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                   </svg>
                   ย้อนกลับ
                 </button>
-                <button type="submit" className={styles.btnPrimary}>
+                <button 
+                  type="submit" 
+                  className={styles.btnPrimary}
+                  disabled={!paperId || saving || status === 'saved'}
+                  title={
+                    status === 'saved'
+                      ? 'งานวิจัยนี้ถูกประเมินแล้ว'
+                      : saving
+                      ? 'กำลังบันทึก…'
+                      : !paperId
+                      ? 'กรุณาเลือกงานวิจัยก่อน'
+                      : 'บันทึกผลการประเมิน'
+                  }
+                >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                   </svg>
@@ -423,7 +587,7 @@ const EvaluatePage = () => {
         </footer>
       </div>
     </div>
-  );
+  ));
 };
 
 export default EvaluatePage;

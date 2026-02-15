@@ -114,6 +114,12 @@
 
 .filterTabs { display: flex; gap: 10px; }
 
+/* tab with alert (e.g. pending count) */
+.alertTab {
+  color: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
 .filterOptions { display:flex; align-items:center; gap:10px; }
 
 .filterOption {
@@ -125,16 +131,15 @@
   cursor: pointer;
 }
 
-/* Layout: left rail + mosaic grid */
+/* Layout: use full width for cards; left rail not used */
 .mainContent {
-  display: grid;
-  grid-template-columns: 270px 1fr;
-  gap: 22px;
-  align-items: start;
+  display: block; /* simply stack content, cardsGrid will handle grid internally */
 }
 
-/* Left stats rail */
-.cardsGrid + .leftRail { display: none; }
+/* hide left rail completely and collapse column space */
+.cardsGrid + .leftRail {
+  display: none;
+}
 
 .leftRail {
   position: sticky;
@@ -157,6 +162,7 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   grid-auto-rows: auto;
   gap: 18px;
+  justify-items: center; /* center cards in available space */
 }
 
 .card {
@@ -210,6 +216,9 @@
 .cardTeam { padding-left:8px; color: rgba(15,23,42,0.65); }
 
 .cardStatus { margin-top:8px; }
+
+/* highlight pending cards with red border */
+.card.pending { border-color: #dc2626; }
 
 .statusBadge { font-size:12px; padding:6px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; font-weight:700; }
 .pending { background: linear-gradient(90deg,#fff4e6,#ffd8b5); color:#7f1d1d; }
