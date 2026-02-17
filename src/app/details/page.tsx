@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react'; // เพิ่ม Suspense เข้ามา
+import { useEffect, useState, Suspense } from 'react';
 import Header from '../../components/Header';
 import styles from './details.module.css';
 
@@ -32,12 +32,13 @@ interface Research {
   };
 }
 
-// 1. เปลี่ยนชื่อ Component เดิมเป็น Content (เอา logic เดิมทั้งหมดของคุณมาไว้ในนี้)
+// สร้าง Component เนื้อหาแยกออกมา (เอา Logic เดิมของคุณมาใส่ตรงนี้)
 function ResearchDetailsContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
 
+  // Logic การดึง ID
   const paramsId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const queryId = searchParams?.get('id');
   const researchId = paramsId || queryId;
@@ -131,7 +132,6 @@ function ResearchDetailsContent() {
     );
   }
 
-  // use fileUrl directly if available, or fallback to fileId route
   const pdfUrl = research.fileUrl
     ? research.fileUrl
     : research.fileId
@@ -187,12 +187,10 @@ function ResearchDetailsContent() {
             </div>
 
             <div className={styles.contentCard}>
-              {/* Title */}
               <div className={styles.titleSection}>
                 <h1 className={styles.title}>{research.title}</h1>
               </div>
 
-              {/* Metadata */}
               <div className={styles.metadataBar}>
                 <div className={styles.metaItem}>
                   <span className={styles.metaLabel}>👥 ผู้เขียน</span>
@@ -245,13 +243,11 @@ function ResearchDetailsContent() {
                 </div>
               )}
 
-              {/* Abstract */}
               <section className={styles.abstractSection}>
                 <h3 className={styles.sectionTitle}>📝 บทคัดย่อ</h3>
                 <p className={styles.abstractText}>{research.abstract}</p>
               </section>
 
-              {/* Objectives */}
               <section className={styles.objectivesSection}>
                 <h3 className={styles.sectionTitle}>🎯 วัตถุประสงค์</h3>
                 <ul className={styles.objectivesList}>
@@ -265,7 +261,6 @@ function ResearchDetailsContent() {
                 </ul>
               </section>
 
-              {/* Keywords */}
               {research.keywords && research.keywords.length > 0 && (
                 <section className={styles.keywordsSection}>
                   <h3 className={styles.sectionTitle}>🏷️ คำสำคัญ</h3>
@@ -277,7 +272,6 @@ function ResearchDetailsContent() {
                 </section>
               )}
 
-              {/* Project Info Grid */}
               <div className={styles.infoGrid}>
                 <div className={styles.infoCard}>
                   <h4>ประเภท</h4>
@@ -298,7 +292,6 @@ function ResearchDetailsContent() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className={styles.actions}>
                 <button onClick={() => router.back()} className={styles.cancelBtn}>
                   ← ยกเลิก
@@ -313,16 +306,11 @@ function ResearchDetailsContent() {
       </div>
 
       {/* PDF Modal */}
-      {/* ย้าย Modal ออกมานอก div หลัก หรือไว้ตรงนี้ก็ได้ แต่ต้องมั่นใจว่าครอบด้วย React Fragment หรือ div */}
       <div className={`${styles.pdfModal} ${pdfModalOpen ? styles.open : ''}`} onClick={() => setPdfModalOpen(false)}>
         <div className={styles.pdfModalContent} onClick={(e) => e.stopPropagation()}>
           <div className={styles.pdfModalHeader}>
             <h2>📄 {research.title}</h2>
-            <button
-              className={styles.closeBtn}
-              onClick={() => setPdfModalOpen(false)}
-              title="ปิด"
-            >
+            <button className={styles.closeBtn} onClick={() => setPdfModalOpen(false)} title="ปิด">
               ✕
             </button>
           </div>
@@ -335,7 +323,7 @@ function ResearchDetailsContent() {
                 allowFullScreen
               />
             ) : (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+              <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
                 ไม่มีไฟล์เอกสาร
               </div>
             )}
@@ -346,24 +334,14 @@ function ResearchDetailsContent() {
   );
 }
 
-// 2. สร้าง Wrapper Component เพื่อแก้ปัญหา Build Error (Missing Suspense)
+// สร้าง Component หลักสำหรับครอบ Suspense (อันนี้คือตัวที่ Next.js จะเรียกใช้)
 export default function ResearchDetailsPage() {
   return (
     <Suspense fallback={
-      // Loading State ระหว่างรอ URL Params
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh', 
-        flexDirection: 'column',
-        gap: '1rem' 
-      }}>
-        <div className={styles.spinner} style={{width: 40, height: 40, border: '4px solid #f3f3f3', borderTop: '4px solid #3498db', borderRadius: '50%', animation: 'spin 1s linear infinite'}} />
-        <p>กำลังโหลดหน้ารายละเอียด...</p>
-        <style jsx>{`
-          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        `}</style>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ width: 40, height: 40, border: '4px solid #f3f3f3', borderTop: '4px solid #3498db', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <p>กำลังโหลดข้อมูล...</p>
+        <style jsx>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
       </div>
     }>
       <ResearchDetailsContent />
