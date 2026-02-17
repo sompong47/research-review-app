@@ -275,49 +275,73 @@
 
 /* ========== PDF Modal ========== */
 .pdfModal {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 1000;
-  align-items: center;
+  background-color: rgba(0, 0, 0, 0.75); /* พื้นหลังสีดำจางๆ */
+  display: flex;
   justify-content: center;
-  padding: 20px;
-  overflow-y: auto;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
 }
 
 .pdfModal.open {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .pdfModalContent {
-  background: #ffffff;
+  background: white;
+  /* จุดสำคัญ: ปรับให้กว้างและสูงเกือบเต็มจอ */
+  width: 95vw;          /* กว้าง 95% ของหน้าจอ */
+  height: 90vh;         /* สูง 90% ของหน้าจอ */
+  max-width: 1600px;    /* จำกัดความกว้างไม่ให้ล้นเกินไปในจอใหญ่ */
+  
   border-radius: 12px;
-  width: 100%;
-  max-width: 90vw;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;        /* ใช้ Flex เพื่อจัดการ Layout ภายใน */
+  flex-direction: column; 
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
 }
 
 .pdfModalHeader {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  flex-shrink: 0;
+  background-color: white;
+  flex-shrink: 0; /* ห้ามหดส่วนหัว */
 }
 
 .pdfModalHeader h2 {
-  margin: 0;
-  font-size: 16px;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: #1f2937;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdfModalBody {
+  flex: 1; /* ยืดส่วนนี้ให้เต็มพื้นที่ความสูงที่เหลือ */
+  background-color: #525659; /* สีเทาเข้มเหมือนโปรแกรม PDF */
+  position: relative;
+  overflow: hidden;
+}
+
+.pdfModalIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
 
 .closeBtn {
@@ -326,29 +350,14 @@
   font-size: 24px;
   cursor: pointer;
   color: #6b7280;
-  transition: color 0.2s ease;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .closeBtn:hover {
-  color: #111827;
-}
-
-.pdfModalBody {
-  flex: 1;
-  overflow-y: auto;
-  background: #f8f9fa;
-}
-
-.pdfModalIframe {
-  width: 100%;
-  height: 100%;
-  border: none;
+  background-color: #f3f4f6;
+  color: #ef4444;
 }
 
 /* ========== Content Sections ========== */
